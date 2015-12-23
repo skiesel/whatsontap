@@ -1,0 +1,12 @@
+{{ template "header.template" . }}
+
+{{ range $index, $beer := .Account.Taps }}
+	<h3>Tap {{ $index }}</h3>
+	<h4>{{ $beer.Name }}</h4>
+	<h4>{{ $beer.Style }}</h4>
+	<h4>{{ $beer.Description }}</h4>
+{{ end }}
+
+<button>Add Tap</button>
+
+{{ template "footer.template" . }}

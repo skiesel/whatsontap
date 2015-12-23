@@ -1,0 +1,12 @@
+<html>
+<head>
+	<title>{{ .Account.Name }}</title>
+</head>
+<body>
+{{ if .LoggedIn }}
+<a href="/account">account</a>
+<a href="/taps">taps</a>
+<a href="/logout">logout</a>
+{{ else }}
+<a href="/">login</a>
+{{ end }}

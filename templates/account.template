@@ -1,0 +1,8 @@
+{{ template "header.template" . }}
+
+
+<h3>{{ .Account.Name }}</h3>
+<h3>{{ .Account.ShortName }}</h3>
+
+
+{{ template "footer.template" . }}
