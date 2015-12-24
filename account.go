@@ -4,13 +4,14 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"appengine/memcache"
+	"errors"
 )
 
 type Account struct {
-	Name string
-	Email string
+	Name      string
+	Email     string
 	ShortName string
-	Taps []Beer
+	Taps      []Beer
 }
 
 func putAccountInMemcache(account Account, c appengine.Context) {
@@ -48,11 +49,11 @@ func getAccountByEmail(email string, c appengine.Context) Account {
 		putAccountInMemcache(account, c)
 	} else {
 		account = Account{
-			Name : email + "'s Taproom",
-			Email : email,
-			ShortName : email,
-			Taps : []Beer{},
-			}
+			Name:      email + "'s Taproom",
+			Email:     email,
+			ShortName: email,
+			Taps:      []Beer{},
+		}
 		saveAccount(&account, c)
 	}
 
@@ -73,8 +74,10 @@ func getAccountByShortName(shortname string, c appengine.Context) (Account, erro
 		Filter("ShortName =", shortname)
 
 	var accounts []Account
-	if _, err := query.GetAll(c, &accounts); err != nil /*|| len(accounts) == 0*/ {
+	if _, err := query.GetAll(c, &accounts); err != nil {
 		return Account{}, err
+	} else if  len(accounts) == 0 {
+		return Account{}, errors.New("Not found")
 	}
 
 	putAccountInMemcache(accounts[0], c)

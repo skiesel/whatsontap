@@ -1,7 +1,7 @@
 package main
 
 type Beer struct {
-	Name string
+	Name        string
 	Description string
-	Style string
+	Style       string
 }

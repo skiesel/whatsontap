@@ -2,22 +2,22 @@ package main
 
 import (
 	"appengine"
-	"fmt"
-	"net/http"
 	"appengine/user"
+	"fmt"
 	"html/template"
+	"net/http"
+	"strings"
 )
 
 type Page struct {
 	WhichPage string
-	LoggedIn bool
-	Account Account
+	LoggedIn  bool
+	Account   Account
 }
 
 var (
 	pages *template.Template
 )
-
 
 func init() {
 	pages = template.Must(template.ParseGlob("templates/*.template"))
@@ -28,20 +28,26 @@ func init() {
 	http.HandleFunc("/", index)
 }
 
-
 func index(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
-	path := r.URL.Path
+	path := strings.Replace(r.URL.Path, "/", "", -1)
 
 	u := user.Current(c)
 
-	if path != "/" {
+	if path != "" {
+		c.Infof(path)
+
 		account, err := getAccountByShortName(path, c)
 
+		if err != nil {
+			showError(w, http.StatusInternalServerError, c)
+			return
+		}
+
 		page := Page{
-			LoggedIn:u != nil,
-			Account:account,
+			LoggedIn: u != nil,
+			Account:  account,
 		}
 
 		err = pages.ExecuteTemplate(w, "viewtaps.template", page)
@@ -61,7 +67,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 func logout(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	
+
 	u := user.Current(c)
 	if u != nil {
 		showLogout(w, r, c)
@@ -83,9 +89,9 @@ func account(w http.ResponseWriter, r *http.Request) {
 	account := getAccountByEmail(u.Email, c)
 
 	page := Page{
-		WhichPage:"account",
-		LoggedIn:true,
-		Account:account,
+		WhichPage: "account",
+		LoggedIn:  true,
+		Account:   account,
 	}
 
 	err := pages.ExecuteTemplate(w, "account.template", page)
@@ -107,9 +113,9 @@ func taps(w http.ResponseWriter, r *http.Request) {
 	account := getAccountByEmail(u.Email, c)
 
 	page := Page{
-		WhichPage:"taps",
-		LoggedIn:true,
-		Account:account,
+		WhichPage: "taps",
+		LoggedIn:  true,
+		Account:   account,
 	}
 
 	err := pages.ExecuteTemplate(w, "taps.template", page)
