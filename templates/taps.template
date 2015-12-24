@@ -1,24 +1,37 @@
 {{ template "header.template" . }}
 
-<div ng-controller="tapsController">
+<div class="text-center" ng-controller="tapsController" ng-cloak>
 	<div ng-repeat="tap in Taps">
-		<div ng-show="editingIndex < 0 || editingIndex != tap.Index">
-			<h3>Tap [[ tap.Index ]]</h3>
-			<h4>[[ tap.Name ]]</h4>
+
+		<div class="jumbotron" ng-show="editingIndex < 0 || editingIndex != tap.Index">
+			<h2>Tap [[ tap.Index ]]</h2>
+			<h3>[[ tap.Name ]]</h3>
 			<h4>[[ tap.Style ]]</h4>
-			<h4>[[ tap.Description ]]</h4>
-			<button ng-show="!editingTap" ng-click="editTap(tap.Index)">Edit Tap</button>
+			<p>[[ tap.Description ]]</p>
+			<button type="button" class="btn btn-default" ng-show="!editingTap" ng-click="editTap(tap.Index)">Edit Tap</button>
 		</div>
 
-		<div ng-show="editingIndex == tap.Index">
-			<input type="text" ng-model="tap.Name" /><br/>
-			<input type="text" ng-model="tap.Style" /><br/>
-			<input type="text" ng-model="tap.Description" /><br/>
-			<button ng-click="saveTap(tap.Index)">save</button><button ng-click="revertTap(tap.Index)">cancel</button>
+		<div class="jumbotron" ng-show="editingIndex == tap.Index">
+			<form>
+				<div class="form-group">
+					<label for="BeerName[[tap.Index]]">Beer Name</label>
+					<input type="text" class="form-control" ng-model="tap.Name" id="BeerName[[tap.Index]]">
+				</div>
+				<div class="form-group">
+					<label for="BeerStyle[[tap.Index]]">Beer Style</label>
+					<input type="text" class="form-control" ng-model="tap.Style" id="BeerStyle[[tap.Index]]"/>
+				</div>
+				<div class="form-group">
+					<label for="BeerDescription[[tap.Index]]">Beer Style</label>
+					<textarea class="form-control" ng-model="tap.Description" id="BeerDescription[[tap.Index]]"></textarea>
+				</div>
+			</form>
+			<button type="button" class="btn btn-default" ng-click="saveTap(tap.Index)">save</button>
+			<button type="button" class="btn btn-default" ng-click="revertTap(tap.Index)">cancel</button>
 		</div>
 	</div>
 
-	<button ng-show="!addingNewTap" ng-click="addTap()">Add Tap</button>
+	<button type="button" class="btn btn-default" ng-show="editingIndex < 0" ng-click="addTap()">Add Tap</button>
 </div>
 
 
@@ -29,7 +42,7 @@ whatsontap.controller('tapsController', function ($scope) {
 	$scope.Taps = [
 	{{ range $index, $beer := .Account.Taps }}
 		{
-			"Index" : {{ $index }},
+			"Index" : {{ $index }} + 1,
 			"Name" : "{{ $beer.Name }}",
 			"Style" : "{{ $beer.Style }}",
 			"Description" : "{{ $beer.Description }}",
@@ -39,7 +52,7 @@ whatsontap.controller('tapsController', function ($scope) {
 
 	$scope.addTap = function() {
 		$scope.Taps.push({
-			"Index" : $scope.Taps.length,
+			"Index" : $scope.Taps.length + 1,
 			"Name" : "Beer",
 			"Style" : "Amber Ale",
 			"Description" : "A refreshing ale.",

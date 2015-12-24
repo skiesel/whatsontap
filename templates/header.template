@@ -1,6 +1,8 @@
 <html>
 <head>
 	<title>{{ .Account.Name }}</title>
+	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+	<scipt src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
 	<script>
 		var whatsontap = angular.module('whatsontap', [])
@@ -11,10 +13,15 @@
   	</script>
 </head>
 <body ng-app="whatsontap">
-{{ if .LoggedIn }}
-<a href="/account">account</a>
-<a href="/taps">taps</a>
-<a href="/logout">logout</a>
+<div class="container">
+<ul class="nav nav-pills nav-justified">
+	{{ if .LoggedIn }}
+		<li role="presentation" {{ if eq .WhichPage "account" }}class="active"{{end}}><a href="/account">account</a></li>
+		<li role="presentation" {{ if eq .WhichPage "taps" }}class="active"{{end}}><a href="/taps">taps</a></li>
+		<li role="presentation"><a href="/logout">logout</a></li>
 {{ else }}
-<a href="/">login</a>
-{{ end }}
+		<li role="presentation"><a href="/">login</a></li>
+{{ end }}  
+</ul>
+
+

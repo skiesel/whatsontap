@@ -9,6 +9,7 @@ import (
 )
 
 type Page struct {
+	WhichPage string
 	LoggedIn bool
 	Account Account
 }
@@ -82,6 +83,7 @@ func account(w http.ResponseWriter, r *http.Request) {
 	account := getAccountByEmail(u.Email, c)
 
 	page := Page{
+		WhichPage:"account",
 		LoggedIn:true,
 		Account:account,
 	}
@@ -105,6 +107,7 @@ func taps(w http.ResponseWriter, r *http.Request) {
 	account := getAccountByEmail(u.Email, c)
 
 	page := Page{
+		WhichPage:"taps",
 		LoggedIn:true,
 		Account:account,
 	}
