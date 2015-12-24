@@ -1,9 +1,9 @@
 {{ template "header.template" . }}
 
-<div class="text-center" ng-controller="accountController">
+<div class="text-center" ng-controller="accountController" ng-cloak>
 	<div class="jumbotron">
 		<div ng-show="!editing">
-			<h2>[[ Account.Name ]]</h2>
+			<h1>[[ Account.Name ]]</h1>
 			<h3><a href="[[ Host + Account.ShortName ]]">[[ Host + Account.ShortName ]]</a></h3>
 			<button type="button" class="btn btn-default" ng-click="startEdit()">edit</button>
 		</div>

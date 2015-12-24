@@ -3,34 +3,36 @@
 <div class="text-center" ng-controller="tapsController" ng-cloak>
 	<div ng-repeat="tap in Taps">
 
-		<div class="jumbotron" ng-show="editingIndex < 0 || editingIndex != tap.Index">
-			<h2>Tap [[ tap.Index ]]</h2>
-			<h3>[[ tap.Name ]]</h3>
-			<h4>[[ tap.Style ]]</h4>
-			<p>[[ tap.Description ]]</p>
-			<button type="button" class="btn btn-default" ng-show="!editingTap" ng-click="editTap(tap.Index)">Edit Tap</button>
-		</div>
+		<div class="col-sm-6 col-md-4">
+			<div class="jumbotron" ng-show="editingIndex < 0 || editingIndex != tap.Index">
+				<h1>Tap [[ tap.Index ]]</h1>
+				<h2>[[ tap.Name ]]</h2>
+				<h3>[[ tap.Style ]]</h3>
+				<h4>[[ tap.Description ]]</h4>
+				<button type="button" class="btn btn-default" ng-show="!editingTap" ng-click="editTap(tap.Index)">Edit Tap</button>
+			</div>
 
-		<div class="jumbotron" ng-show="editingIndex == tap.Index">
-			<form>
-				<div class="form-group">
-					<label for="BeerName[[tap.Index]]">Beer Name</label>
-					<input type="text" class="form-control" ng-model="tap.Name" id="BeerName[[tap.Index]]">
-				</div>
-				<div class="form-group">
-					<label for="BeerStyle[[tap.Index]]">Beer Style</label>
-					<input type="text" class="form-control" ng-model="tap.Style" id="BeerStyle[[tap.Index]]"/>
-				</div>
-				<div class="form-group">
-					<label for="BeerDescription[[tap.Index]]">Beer Style</label>
-					<textarea class="form-control" ng-model="tap.Description" id="BeerDescription[[tap.Index]]"></textarea>
-				</div>
-			</form>
-			<button type="button" class="btn btn-default" ng-click="saveTap(tap.Index)">save</button>
-			<button type="button" class="btn btn-default" ng-click="revertTap(tap.Index)">cancel</button>
+			<div class="jumbotron" ng-show="editingIndex == tap.Index">
+				<form>
+					<div class="form-group">
+						<label for="BeerName[[tap.Index]]">Beer Name</label>
+						<input type="text" class="form-control" ng-model="tap.Name" id="BeerName[[tap.Index]]">
+					</div>
+					<div class="form-group">
+						<label for="BeerStyle[[tap.Index]]">Beer Style</label>
+						<input type="text" class="form-control" ng-model="tap.Style" id="BeerStyle[[tap.Index]]"/>
+					</div>
+					<div class="form-group">
+						<label for="BeerDescription[[tap.Index]]">Beer Style</label>
+						<textarea class="form-control" ng-model="tap.Description" id="BeerDescription[[tap.Index]]"></textarea>
+					</div>
+				</form>
+				<button type="button" class="btn btn-default" ng-click="saveTap(tap.Index)">save</button>
+				<button type="button" class="btn btn-default" ng-click="revertTap(tap.Index)">cancel</button>
+			</div>
 		</div>
 	</div>
-
+	<div class="clearfix visible-xs-block visible-sm-block visible-md-block visible-lg-block"></div>
 	<button type="button" class="btn btn-default" ng-show="editingIndex < 0" ng-click="addTap()">Add Tap</button>
 </div>
 
