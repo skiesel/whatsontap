@@ -1,12 +1,62 @@
 {{ template "header.template" . }}
 
-{{ range $index, $beer := .Account.Taps }}
-	<h3>Tap {{ $index }}</h3>
-	<h4>{{ $beer.Name }}</h4>
-	<h4>{{ $beer.Style }}</h4>
-	<h4>{{ $beer.Description }}</h4>
-{{ end }}
+<div ng-controller="tapsController">
+	<div ng-repeat="tap in Taps">
+		<div ng-show="editingIndex < 0 || editingIndex != tap.Index">
+			<h3>Tap [[ tap.Index ]]</h3>
+			<h4>[[ tap.Name ]]</h4>
+			<h4>[[ tap.Style ]]</h4>
+			<h4>[[ tap.Description ]]</h4>
+			<button ng-show="!editingTap" ng-click="editTap(tap.Index)">Edit Tap</button>
+		</div>
 
-<button>Add Tap</button>
+		<div ng-show="editingIndex == tap.Index">
+			<input type="text" ng-model="tap.Name" /><br/>
+			<input type="text" ng-model="tap.Style" /><br/>
+			<input type="text" ng-model="tap.Description" /><br/>
+			<button ng-click="saveTap(tap.Index)">save</button><button ng-click="revertTap(tap.Index)">cancel</button>
+		</div>
+	</div>
 
+	<button ng-show="!addingNewTap" ng-click="addTap()">Add Tap</button>
+</div>
+
+
+
+<script>
+whatsontap.controller('tapsController', function ($scope) {
+	$scope.editingIndex = -1;
+	$scope.Taps = [
+	{{ range $index, $beer := .Account.Taps }}
+		{
+			"Index" : {{ $index }},
+			"Name" : "{{ $beer.Name }}",
+			"Style" : "{{ $beer.Style }}",
+			"Description" : "{{ $beer.Description }}",
+		},
+	{{ end }}
+	];
+
+	$scope.addTap = function() {
+		$scope.Taps.push({
+			"Index" : $scope.Taps.length,
+			"Name" : "Beer",
+			"Style" : "Amber Ale",
+			"Description" : "A refreshing ale.",
+		});
+	};
+
+	$scope.editTap = function(tapIndex) {
+		$scope.editingIndex = tapIndex;
+	};
+
+	$scope.saveTap = function(tapIndex) {
+		$scope.editingIndex = -1;
+	};
+
+	$scope.revertTap = function(tapIndex) {
+		$scope.editingIndex = -1;
+	};
+});
+</script>
 {{ template "footer.template" . }}

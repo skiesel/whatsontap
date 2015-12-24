@@ -1,8 +1,16 @@
 <html>
 <head>
 	<title>{{ .Account.Name }}</title>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+	<script>
+		var whatsontap = angular.module('whatsontap', [])
+			.config(function($interpolateProvider) {
+    			$interpolateProvider.startSymbol('[[');
+    			$interpolateProvider.endSymbol(']]');
+  			});
+  	</script>
 </head>
-<body>
+<body ng-app="whatsontap">
 {{ if .LoggedIn }}
 <a href="/account">account</a>
 <a href="/taps">taps</a>

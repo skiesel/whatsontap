@@ -8,19 +8,6 @@ import (
 	"html/template"
 )
 
-type Account struct {
-	Name string
-	Email string
-	ShortName string
-	Taps []*Beer
-}
-
-type Beer struct {
-	Name string
-	Description string
-	Style string
-}
-
 type Page struct {
 	LoggedIn bool
 	Account Account
@@ -28,53 +15,18 @@ type Page struct {
 
 var (
 	pages *template.Template
-	accounts = []Account {
-		Account{
-			Name:"Scott's Bar",
-			Email:"test@example.com",
-			ShortName:"ScottsBar",
-			Taps:[]*Beer{
-				&Beer{
-					Name:"Beer1",
-					Description:"It's delicious",
-					Style:"Amber Ale",
-				},
-				&Beer{
-					Name:"Beer2",
-					Description:"It's REALLY delicious",
-					Style:"Imperial Stout",
-				},
-			},
-		},
-		Account{
-			Name:"Someone Else's Bar",
-			Email:"test@example.com",
-			ShortName:"TestBar",
-			Taps:[]*Beer{
-				&Beer{
-					Name:"Beer3",
-					Description:"It's gross",
-					Style:"ESB",
-				},
-				&Beer{
-					Name:"Beer4",
-					Description:"It's not bad",
-					Style:"Sweet Stout",
-				},
-			},
-		},
-	}
 )
 
 
 func init() {
 	pages = template.Must(template.ParseGlob("templates/*.template"))
 
-	http.HandleFunc("/", index)
-	http.HandleFunc("/logout", logout)
 	http.HandleFunc("/account", account)
 	http.HandleFunc("/taps", taps)
+	http.HandleFunc("/logout", logout)
+	http.HandleFunc("/", index)
 }
+
 
 func index(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
@@ -84,21 +36,20 @@ func index(w http.ResponseWriter, r *http.Request) {
 	u := user.Current(c)
 
 	if path != "/" {
-		account := getAccountByShortName(path)
+		account, err := getAccountByShortName(path, c)
 
 		page := Page{
 			LoggedIn:u != nil,
 			Account:account,
 		}
 
-		err := pages.ExecuteTemplate(w, "viewtaps.template", page)
+		err = pages.ExecuteTemplate(w, "viewtaps.template", page)
 		if err != nil {
 			showError(w, http.StatusInternalServerError, c)
 		}
 		return
 	}
 
-	
 	if u == nil {
 		showLogin(w, r, c)
 		return
@@ -128,7 +79,7 @@ func account(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account := getAccountByEmail(u.Email)
+	account := getAccountByEmail(u.Email, c)
 
 	page := Page{
 		LoggedIn:true,
@@ -151,7 +102,7 @@ func taps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account := getAccountByEmail(u.Email)
+	account := getAccountByEmail(u.Email, c)
 
 	page := Page{
 		LoggedIn:true,
@@ -189,14 +140,6 @@ func showLogout(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 
 func showError(w http.ResponseWriter, status int, c appengine.Context) {
 	fmt.Fprintf(w, "Perhaps you've had one too many...")
-}
-
-func getAccountByEmail(email string) Account {
-	return accounts[0]
-}
-
-func getAccountByShortName(shortname string) Account {
-	return accounts[1]
 }
 
 func plusOne(n int) int {

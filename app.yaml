@@ -8,6 +8,9 @@ handlers:
   static_dir: js
 - url: /css
   static_dir: css
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
 - url: /taps
   login: required
   script: _go_app

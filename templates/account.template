@@ -1,8 +1,39 @@
 {{ template "header.template" . }}
 
+<div ng-controller="accountController">
+		<div ng-show="!editing">
+			<h3>[[ Account.Name ]]</h3>
+			<h3>[[ Account.ShortName ]]</h3>
+			<button  ng-click="startEdit()">edit</button>
+		</div>
+		<div ng-show="editing">
+			<input type="text" ng-model="Account.Name" /><br/>
+			<input type="text" ng-model="Account.ShortName" /><br/>
+			<button ng-click="saveEdit()">save</button>
+			<button ng-click="cancelEdit()">cancel</button>
+		</div>
+</div>
 
-<h3>{{ .Account.Name }}</h3>
-<h3>{{ .Account.ShortName }}</h3>
+<script>
+whatsontap.controller('accountController', function ($scope) {
+	$scope.editing = false;
+	$scope.Account = {
+		"Name" : "{{ .Account.Name }}",
+		"ShortName" : "{{ .Account.ShortName }}",
+	};
 
+	$scope.startEdit = function() {
+		$scope.editing = true;
+	};
+
+	$scope.cancelEdit = function() {
+		$scope.editing = false;
+	};
+
+	$scope.saveEdit = function() {
+		$scope.editing = false;
+	};
+});
+</script>
 
 {{ template "footer.template" . }}
