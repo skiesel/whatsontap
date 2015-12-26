@@ -33,17 +33,30 @@ whatsontap.controller('accountController', function ($scope, $location) {
 		"ShortName" : "{{ .Account.ShortName }}",
 	};
 
+	var backup;
 	$scope.startEdit = function() {
+		backup = angular.copy($scope.Account);
 		$scope.editing = true;
 	};
 
 	$scope.cancelEdit = function() {
 		$scope.editing = false;
+		$scope.Account = angular.copy(backup);
 	};
 
 	$scope.saveEdit = function() {
 		$scope.Account.ShortName = encodeURI($scope.Account.ShortName);
 		$scope.editing = false;
+
+		$.post("/update/account",
+			JSON.stringify($scope.Account),
+			function(data) {
+				if(data !== "success") {
+					$scope.$apply(function() {
+						$scope.Account = angular.copy(backup);
+					});
+				}
+			});
 	};
 });
 </script>

@@ -14,12 +14,20 @@ type Account struct {
 	Taps      []Beer
 }
 
+type AccountLookup struct {
+	Email string
+}
+
+func removeShortNameFromMemcache(shortname string, c appengine.Context) {
+	memcache.Delete(c, shortname)
+}
+
 func putAccountInMemcache(account Account, c appengine.Context) {
 	shortnameLookup := &memcache.Item{
 		Key:   account.ShortName,
-		Value: []byte(account.Email),
+		Object: AccountLookup{ Email : account.Email },
 	}
-	memcache.Set(c, shortnameLookup)
+	memcache.JSON.Set(c, shortnameLookup)
 
 	fullLookup := &memcache.Item{
 		Key:    account.Email,
@@ -28,11 +36,12 @@ func putAccountInMemcache(account Account, c appengine.Context) {
 	memcache.JSON.Set(c, fullLookup)
 }
 
-func saveAccount(account *Account, c appengine.Context) error {
-	putAccountInMemcache(*account, c)
+func saveAccount(account Account, c appengine.Context) error {
+	putAccountInMemcache(account, c)
 
 	key := datastore.NewKey(c, "Account", account.Email, 0, nil)
-	_, err := datastore.Put(c, key, account)
+	_, err := datastore.Put(c, key, &account)
+
 	return err
 }
 
@@ -44,7 +53,7 @@ func getAccountByEmail(email string, c appengine.Context) Account {
 
 	key := datastore.NewKey(c, "Account", email, 0, nil)
 	account = Account{}
-	err := datastore.Get(c, key, account)
+	err := datastore.Get(c, key, &account)
 	if err == nil {
 		putAccountInMemcache(account, c)
 	} else {
@@ -54,20 +63,20 @@ func getAccountByEmail(email string, c appengine.Context) Account {
 			ShortName: email,
 			Taps:      []Beer{},
 		}
-		saveAccount(&account, c)
+		saveAccount(account, c)
 	}
 
 	return account
 }
 
 func getAccountByShortName(shortname string, c appengine.Context) (Account, error) {
-	if emailBytes, err := memcache.Get(c, shortname); err == nil {
-		email := string(emailBytes.Value)
-		var account Account
-		if _, err := memcache.JSON.Get(c, email, &account); err == nil {
+	accountEmail := AccountLookup{}
+	if _, err := memcache.JSON.Get(c, shortname, &accountEmail); err == nil {
+		account := Account{}
+		if _, err := memcache.JSON.Get(c, accountEmail.Email, &account); err == nil {
 			return account, nil
 		}
-		return getAccountByEmail(email, c), nil
+		return getAccountByEmail(accountEmail.Email, c), nil
 	}
 
 	query := datastore.NewQuery("Account").

@@ -1,10 +1,19 @@
 {{ template "header.template" . }}
 
-{{ range $index, $beer := .Account.Taps }}
-	<h3>Tap {{ $index }}</h3>
-	<h4>{{ $beer.Name }}</h4>
-	<h4>{{ $beer.Style }}</h4>
-	<h4>{{ $beer.Description }}</h4>
-{{ end }}
+<div class="text-center">
+	<div class="col-xs-12">
+		<h1>{{ .Account.Name }}</h1>
+	</div>
+	{{ range $index, $beer := .Account.Taps }}
+		<div class="col-sm-6 col-md-4">
+			<div class="jumbotron">
+				<h1>Tap {{ $index }}</h1>
+				<h2>{{ $beer.Name }}</h2>
+				<h3>{{ $beer.Style }}</h3>
+				<h4>{{ $beer.Description }}</h4>
+			</div>
+		</div>
+	{{ end }}
+</div>
 
 {{ template "footer.template" . }}

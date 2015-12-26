@@ -1,34 +1,35 @@
 {{ template "header.template" . }}
 
 <div class="text-center" ng-controller="tapsController" ng-cloak>
-	<div ng-repeat="tap in Taps">
+	<div ng-repeat="tap in Taps track by $index">
 
 		<div class="col-sm-6 col-md-4">
-			<div class="jumbotron" ng-show="editingIndex < 0 || editingIndex != tap.Index">
-				<h1>Tap [[ tap.Index ]]</h1>
+			<div class="jumbotron" ng-show="editingIndex < 0 || editingIndex != $index">
+				<h1>Tap [[ $index + 1 ]]</h1>
 				<h2>[[ tap.Name ]]</h2>
 				<h3>[[ tap.Style ]]</h3>
 				<h4>[[ tap.Description ]]</h4>
-				<button type="button" class="btn btn-default" ng-show="!editingTap" ng-click="editTap(tap.Index)">Edit Tap</button>
+				<button type="button" class="btn btn-default" ng-show="!editingTap" ng-click="editTap($index)">Edit Tap</button>
 			</div>
 
-			<div class="jumbotron" ng-show="editingIndex == tap.Index">
+			<div class="jumbotron" ng-show="editingIndex == $index">
 				<form>
 					<div class="form-group">
-						<label for="BeerName[[tap.Index]]">Beer Name</label>
-						<input type="text" class="form-control" ng-model="tap.Name" id="BeerName[[tap.Index]]">
+						<label for="BeerName[[ $index ]]">Beer Name</label>
+						<input type="text" class="form-control" ng-model="tap.Name" id="BeerName[[$index]]">
 					</div>
 					<div class="form-group">
-						<label for="BeerStyle[[tap.Index]]">Beer Style</label>
-						<input type="text" class="form-control" ng-model="tap.Style" id="BeerStyle[[tap.Index]]"/>
+						<label for="BeerStyle[[ $index ]]">Beer Style</label>
+						<input type="text" class="form-control" ng-model="tap.Style" id="BeerStyle[[$index]]"/>
 					</div>
 					<div class="form-group">
-						<label for="BeerDescription[[tap.Index]]">Beer Style</label>
-						<textarea class="form-control" ng-model="tap.Description" id="BeerDescription[[tap.Index]]"></textarea>
+						<label for="BeerDescription[[ $index ]]">Beer Description</label>
+						<textarea class="form-control" ng-model="tap.Description" id="BeerDescription[[$index]]"></textarea>
 					</div>
 				</form>
-				<button type="button" class="btn btn-default" ng-click="saveTap(tap.Index)">save</button>
-				<button type="button" class="btn btn-default" ng-click="revertTap(tap.Index)">cancel</button>
+				<button type="button" class="btn btn-default" ng-click="saveTap($index)">save</button>
+				<button type="button" class="btn btn-default" ng-click="revertTap($index)">cancel</button>
+				<button type="button" class="btn btn-default" ng-click="deleteTap($index)">delete</button>
 			</div>
 		</div>
 	</div>
@@ -36,15 +37,13 @@
 	<button type="button" class="btn btn-default" ng-show="editingIndex < 0" ng-click="addTap()">Add Tap</button>
 </div>
 
-
-
 <script>
 whatsontap.controller('tapsController', function ($scope) {
 	$scope.editingIndex = -1;
+	var backupTap;
 	$scope.Taps = [
 	{{ range $index, $beer := .Account.Taps }}
 		{
-			"Index" : {{ $index }} + 1,
 			"Name" : "{{ $beer.Name }}",
 			"Style" : "{{ $beer.Style }}",
 			"Description" : "{{ $beer.Description }}",
@@ -53,25 +52,70 @@ whatsontap.controller('tapsController', function ($scope) {
 	];
 
 	$scope.addTap = function() {
-		$scope.Taps.push({
-			"Index" : $scope.Taps.length + 1,
-			"Name" : "Beer",
-			"Style" : "Amber Ale",
-			"Description" : "A refreshing ale.",
-		});
+		$.post("/add/tap",
+			{},
+			function(data) {
+				var dataObj;
+				try {
+					dataObj = JSON.parse(data);
+				} catch(err) {
+					console.log(data);
+					return;
+				}
+				
+				$scope.$apply(function() {
+					$scope.Taps.push(dataObj);
+				});
+			}
+		);
 	};
 
+	var backupTap;
 	$scope.editTap = function(tapIndex) {
 		$scope.editingIndex = tapIndex;
+		backupTap = angular.copy($scope.Taps[tapIndex]);
 	};
 
 	$scope.saveTap = function(tapIndex) {
-		$scope.editingIndex = -1;
+		$.post("/update/tap",
+			JSON.stringify({
+				"Tap" : $scope.Taps[tapIndex],
+				"TapIndex" : tapIndex,
+			}),
+			function(data) {
+				if(data === "success") {
+					$scope.$apply(function() {
+						$scope.editingIndex = -1;
+					});
+				}
+				else {
+					console.log(data);
+				}
+			}
+		);
+	};
+
+	$scope.deleteTap = function(tapIndex) {
+		$.post("/delete/tap",
+			JSON.stringify({ "TapIndex" : tapIndex }),
+			function(data) {
+				if(data === "success") {
+					$scope.$apply(function() {
+						$scope.Taps.splice(tapIndex, 1);
+						$scope.editingIndex = -1;
+					});
+				} else {
+					console.log(data);
+				}
+			}
+		);
 	};
 
 	$scope.revertTap = function(tapIndex) {
 		$scope.editingIndex = -1;
+		$scope.Taps[tapIndex] = angular.copy(backupTap);
 	};
 });
 </script>
+
 {{ template "footer.template" . }}

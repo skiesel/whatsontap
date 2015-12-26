@@ -3,7 +3,9 @@ package main
 import (
 	"appengine"
 	"appengine/user"
+	"encoding/json"
 	"fmt"
+	// "html"
 	"html/template"
 	"net/http"
 	"strings"
@@ -22,10 +24,184 @@ var (
 func init() {
 	pages = template.Must(template.ParseGlob("templates/*.template"))
 
+	untappdConfig = loadUntappdConfig()
+
+	http.HandleFunc("/update/account", updateAccount)
+	
+	http.HandleFunc("/add/tap", addTap)
+	http.HandleFunc("/delete/tap", deleteTap)
+	http.HandleFunc("/update/tap", updateTap)
+
 	http.HandleFunc("/account", account)
 	http.HandleFunc("/taps", taps)
 	http.HandleFunc("/logout", logout)
 	http.HandleFunc("/", index)
+}
+
+func updateAccount(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	u := user.Current(c)
+
+	if u == nil {
+		fmt.Fprintf(w, "not logged in")
+		return
+	}
+
+	account := getAccountByEmail(u.Email, c)
+
+	decoder := json.NewDecoder(r.Body)
+	var accountUpdate Account
+	err := decoder.Decode(&accountUpdate)
+	if err != nil {
+		fmt.Fprintf(w, "failed to parse post ojbect")
+		return
+	}
+
+	name := strings.TrimSpace(accountUpdate.Name)
+	if name == "" {
+		fmt.Fprintf(w, "empty names not allowed")
+		return
+	}
+
+	shortname := strings.TrimSpace(accountUpdate.ShortName)
+	if shortname == "" {
+		fmt.Fprintf(w, "empty shortnames not allowed")
+		return
+	}
+
+	if shortname != account.ShortName {
+		//pretty decent race condition here
+		_, err = getAccountByShortName(shortname, c)
+		if err == nil {
+			fmt.Fprintf(w, "shortname is already taken")
+			return
+		}
+		removeShortNameFromMemcache(account.ShortName, c)
+	}
+
+	account.Name = name
+	account.ShortName =  shortname
+
+	err = saveAccount(account, c)
+	if err != nil {
+		fmt.Fprintf(w, "erorr while saving account")
+		return
+	}
+
+	fmt.Fprintf(w, "success")
+}
+
+func addTap(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	u := user.Current(c)
+
+	if u == nil {
+		fmt.Fprintf(w, "not logged in")
+		return
+	}
+
+	account := getAccountByEmail(u.Email, c)
+
+	newBeer := Beer{
+			Name : "Beer!",
+			Style : "Amber Ale",
+			Description : "An delicious beer.",
+		}
+
+	beerJSON, err := json.Marshal(newBeer)
+    if err != nil {
+        fmt.Fprintf(w, "erorr while converting beer to JSON")
+        return
+    }
+
+	account.Taps = append(account.Taps, newBeer);
+
+	err = saveAccount(account, c)
+	if err != nil {
+		fmt.Fprintf(w, "erorr while saving account")
+		return
+	}
+
+	fmt.Fprintf(w, string(beerJSON))
+}
+
+func deleteTap(w http.ResponseWriter, r *http.Request) {
+	type DeleteTapStruct struct {
+		TapIndex  int
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	deleteTapStruct := DeleteTapStruct{ TapIndex : -1 }
+	err := decoder.Decode(&deleteTapStruct)
+
+	if err != nil || deleteTapStruct.TapIndex < 0 {
+		fmt.Fprintf(w, "invalid index" + err.Error())
+		return
+	}
+
+	c := appengine.NewContext(r)
+
+	u := user.Current(c)
+
+	if u == nil {
+		fmt.Fprintf(w, "not logged in")
+		return
+	}
+
+	account := getAccountByEmail(u.Email, c)
+
+	account.Taps = append(account.Taps[:deleteTapStruct.TapIndex], account.Taps[deleteTapStruct.TapIndex+1:]...)
+
+	err = saveAccount(account, c)
+	if err != nil {
+		fmt.Fprintf(w, "erorr while saving account")
+		return
+	}
+
+	fmt.Fprintf(w, "success")
+}
+
+func updateTap(w http.ResponseWriter, r *http.Request) {
+	type UpdateTapStruct struct {
+		Tap Beer
+		TapIndex int
+	}
+
+	c := appengine.NewContext(r)
+
+	decoder := json.NewDecoder(r.Body)
+	updateTapStruct := UpdateTapStruct{ TapIndex : -1, Tap: Beer{} }
+	err := decoder.Decode(&updateTapStruct)
+
+	if err != nil || updateTapStruct.TapIndex < 0 {
+		fmt.Fprintf(w, "invalid index")
+		return
+	}
+
+	u := user.Current(c)
+
+	if u == nil {
+		fmt.Fprintf(w, "not logged in")
+		return
+	}
+
+	account := getAccountByEmail(u.Email, c)
+
+	if updateTapStruct.TapIndex > len(account.Taps) {
+		account.Taps = append(account.Taps, updateTapStruct.Tap)
+	} else {
+		account.Taps[updateTapStruct.TapIndex] = updateTapStruct.Tap
+	}
+
+	err = saveAccount(account, c)
+	if err != nil {
+		fmt.Fprintf(w, "erorr while saving account")
+		return
+	}
+
+	fmt.Fprintf(w, "success")
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -36,8 +212,6 @@ func index(w http.ResponseWriter, r *http.Request) {
 	u := user.Current(c)
 
 	if path != "" {
-		c.Infof(path)
-
 		account, err := getAccountByShortName(path, c)
 
 		if err != nil {
