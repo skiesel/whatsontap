@@ -24,18 +24,53 @@ var (
 func init() {
 	pages = template.Must(template.ParseGlob("templates/*.template"))
 
-	untappdConfig = loadUntappdConfig()
-
 	http.HandleFunc("/update/account", updateAccount)
 	
 	http.HandleFunc("/add/tap", addTap)
 	http.HandleFunc("/delete/tap", deleteTap)
 	http.HandleFunc("/update/tap", updateTap)
 
+	http.HandleFunc("/query/beer", queryForBeers)
+
 	http.HandleFunc("/account", account)
 	http.HandleFunc("/taps", taps)
 	http.HandleFunc("/logout", logout)
 	http.HandleFunc("/", index)
+}
+
+func queryForBeers(w http.ResponseWriter, r *http.Request) {
+	type QueryBeerStruct struct {
+		Query  string
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	queryBeerStruct := QueryBeerStruct{}
+	err := decoder.Decode(&queryBeerStruct)
+
+	if err != nil {
+		fmt.Fprintf(w, "failed to get query")
+		return
+	}
+
+	c := appengine.NewContext(r)
+
+	u := user.Current(c)
+
+	if u == nil {
+		fmt.Fprintf(w, "not logged in")
+		return
+	}
+
+	beers := queryUntappd(queryBeerStruct.Query, c)
+
+	beerBytes, err := json.Marshal(beers)
+
+	if err != nil {
+		fmt.Fprintf(w, "failed to parse untappd response")
+		return
+	}
+
+	fmt.Fprintf(w, string(beerBytes))
 }
 
 func updateAccount(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +172,7 @@ func deleteTap(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&deleteTapStruct)
 
 	if err != nil || deleteTapStruct.TapIndex < 0 {
-		fmt.Fprintf(w, "invalid index" + err.Error())
+		fmt.Fprintf(w, "invalid index")
 		return
 	}
 

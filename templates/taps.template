@@ -17,6 +17,7 @@
 					<div class="form-group">
 						<label for="BeerName[[ $index ]]">Beer Name</label>
 						<input type="text" class="form-control" ng-model="tap.Name" id="BeerName[[$index]]">
+						<button type="button" class="btn btn-default" ng-click="searchUntappd(tap.Name, $index)">search untappd</button>
 					</div>
 					<div class="form-group">
 						<label for="BeerStyle[[ $index ]]">Beer Style</label>
@@ -35,6 +36,33 @@
 	</div>
 	<div class="clearfix visible-xs-block visible-sm-block visible-md-block visible-lg-block"></div>
 	<button type="button" class="btn btn-default" ng-show="editingIndex < 0" ng-click="addTap()">Add Tap</button>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Untappd Results</h4>
+      </div>
+      <div class="modal-body">
+      	<div ng-show="Suggestions.length == 0">
+      		no results
+      	</div>
+
+      	<div class="list-group">
+			<a href="#" class="list-group-item" ng-repeat="suggestion in Suggestions track by $index" ng-click="useSuggestion($index)">
+				<h2 class="list-group-item-heading">[[ suggestion.Name ]]</h2>
+				<h3 class="list-group-item-text">[[ suggestion.Style ]]</h3>
+				<h4 class="list-group-item-text">[[ suggestion.Description ]]</h4>
+			</a>
+      	</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 
 <script>
@@ -50,6 +78,8 @@ whatsontap.controller('tapsController', function ($scope) {
 		},
 	{{ end }}
 	];
+
+	$scope.Suggestions = [];
 
 	$scope.addTap = function() {
 		$.post("/add/tap",
@@ -114,6 +144,33 @@ whatsontap.controller('tapsController', function ($scope) {
 	$scope.revertTap = function(tapIndex) {
 		$scope.editingIndex = -1;
 		$scope.Taps[tapIndex] = angular.copy(backupTap);
+	};
+
+	var updatingTap;
+	$scope.searchUntappd = function(beerQuery, tapIndex) {
+		updatingTap = tapIndex;
+
+		$.post("/query/beer",
+			JSON.stringify({ "Query" : beerQuery }),
+			function(data) {
+				var dataObj;
+				try {
+					$scope.$apply(function() {
+						$scope.Suggestions = JSON.parse(data);
+					});
+					$('#myModal').modal();
+				} catch(err) {
+					console.log(data);
+					return;
+				}
+			}
+		);
+	};
+
+	$scope.useSuggestion = function(suggestionIndex) {
+		$scope.Taps[updatingTap] = $scope.Suggestions[suggestionIndex];
+		$('#myModal').modal('hide');
+		$scope.saveTap(updatingTap);
 	};
 });
 </script>
