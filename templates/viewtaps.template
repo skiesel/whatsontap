@@ -11,6 +11,7 @@
 				<h1>Tap [[ $index + 1 ]]</h1>
 				<img class="img-responsive center-block" ng-src="[[ tap.Image ]]" ng-show="tap.Image != ''">
 				<h2>[[ tap.Name ]]</h2>
+				<h2>[[ tap.Brewer ]]</h2>
 				<h3>[[ tap.Style ]]</h3>
 				<h4>[[ tap.Description ]]</h4>
 				<button type="button" class="btn btn-default" ng-show="!editingTap" ng-click="editTap($index)">Edit Tap</button>
@@ -26,6 +27,7 @@ whatsontap.controller('tapsController', function ($scope) {
 	{{ range $index, $beer := .Account.Taps }}
 		{
 			"Name" : "{{ $beer.Name }}",
+			"Brewer" : "{{ $beer.Brewer }}",
 			"Style" : "{{ $beer.Style }}",
 			"Description" : "{{ $beer.Description }}",
 			"Image" : "{{ $beer.Image }}",

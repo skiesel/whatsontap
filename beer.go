@@ -15,6 +15,7 @@ type UntappdConfig struct {
 
 type Beer struct {
 	Name        string
+	Brewer		string
 	Description string
 	Style       string
 	Image		string
@@ -49,8 +50,12 @@ func queryUntappd(query string, c appengine.Context) []Beer {
 		Beer_style string `json:"beer_style"`
 		Beer_description string `json:"beer_description"`
 	}
+	type UntappdBrewery struct {
+		Brewery_name string `json:"brewery_name"`
+	}
 	type UntappdItems struct {
 		Beer UntappedBeer `json:"beer"`
+		Brewery UntappdBrewery `json:"brewery"`
 	}
 	type UntappdBeers struct {
 		Items []UntappdItems `json:"items"`
@@ -90,6 +95,7 @@ func queryUntappd(query string, c appengine.Context) []Beer {
 	for _, item := range untappdResponse.Response.Beers.Items {
 		beers = append(beers, Beer {
 					Name : item.Beer.Beer_name,
+					Brewer : item.Brewery.Brewery_name,
 					Description : item.Beer.Beer_description,
 					Style : item.Beer.Beer_style,
 					Image : item.Beer.Beer_label, 
