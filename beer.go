@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"appengine/urlfetch"
+	"net/url"
 )
 
 type UntappdConfig struct {
@@ -72,7 +73,7 @@ func queryUntappd(query string, c appengine.Context) []Beer {
 		return []Beer{}
 	}
 
-	url := fmt.Sprintf("https://api.untappd.com/v4/search/beer?client_id=%s&client_secret=%s&q=%s", untappdConfig.ClientId, untappdConfig.ClientSecret, query)
+	url := fmt.Sprintf("https://api.untappd.com/v4/search/beer?client_id=%s&client_secret=%s&q=%s", untappdConfig.ClientId, untappdConfig.ClientSecret, url.QueryEscape(query))
 
 	client := urlfetch.Client(c)
 	resp, err := client.Get(url)

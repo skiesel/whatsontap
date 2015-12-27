@@ -14,7 +14,6 @@
 				<h2>[[ tap.Brewer ]]</h2>
 				<h3>[[ tap.Style ]]</h3>
 				<h4>[[ tap.Description ]]</h4>
-				<button type="button" class="btn btn-default" ng-show="!editingTap" ng-click="editTap($index)">Edit Tap</button>
 			</div>
 		</div>
 
