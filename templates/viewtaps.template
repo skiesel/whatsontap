@@ -7,8 +7,9 @@
 	<div ng-repeat="tap in Taps track by $index">
 
 		<div class="col-sm-6 col-md-4">
-			<div class="jumbotron" ng-show="editingIndex < 0 || editingIndex != $index">
+			<div class="jumbotron">
 				<h1>Tap [[ $index + 1 ]]</h1>
+				<img class="img-responsive center-block" ng-src="[[ tap.Image ]]" ng-show="tap.Image != ''">
 				<h2>[[ tap.Name ]]</h2>
 				<h3>[[ tap.Style ]]</h3>
 				<h4>[[ tap.Description ]]</h4>
@@ -27,6 +28,7 @@ whatsontap.controller('tapsController', function ($scope) {
 			"Name" : "{{ $beer.Name }}",
 			"Style" : "{{ $beer.Style }}",
 			"Description" : "{{ $beer.Description }}",
+			"Image" : "{{ $beer.Image }}",
 		},
 	{{ end }}
 	];

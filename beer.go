@@ -17,6 +17,7 @@ type Beer struct {
 	Name        string
 	Description string
 	Style       string
+	Image		string
 }
 
 func init() {
@@ -86,14 +87,12 @@ func queryUntappd(query string, c appengine.Context) []Beer {
 
 	beers := []Beer{}
 
-	c.Infof("%d", len(untappdResponse.Response.Beers.Items))
-
 	for _, item := range untappdResponse.Response.Beers.Items {
-		c.Infof("here")
 		beers = append(beers, Beer {
 					Name : item.Beer.Beer_name,
 					Description : item.Beer.Beer_description,
 					Style : item.Beer.Beer_style,
+					Image : item.Beer.Beer_label, 
 			})
 	}
 

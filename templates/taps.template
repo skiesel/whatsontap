@@ -6,6 +6,7 @@
 		<div class="col-sm-6 col-md-4">
 			<div class="jumbotron" ng-show="editingIndex < 0 || editingIndex != $index">
 				<h1>Tap [[ $index + 1 ]]</h1>
+				<img class="img-responsive center-block" ng-src="[[ tap.Image ]]" ng-show="tap.Image != ''">
 				<h2>[[ tap.Name ]]</h2>
 				<h3>[[ tap.Style ]]</h3>
 				<h4>[[ tap.Description ]]</h4>
@@ -51,6 +52,7 @@
 
       	<div class="list-group">
 			<a href="#" class="list-group-item" ng-repeat="suggestion in Suggestions track by $index" ng-click="useSuggestion($index)">
+				<img class="img-responsive center-block" ng-src="[[ suggestion.Image ]]" ng-show="suggestion.Image != ''">
 				<h2 class="list-group-item-heading">[[ suggestion.Name ]]</h2>
 				<h3 class="list-group-item-text">[[ suggestion.Style ]]</h3>
 				<h4 class="list-group-item-text">[[ suggestion.Description ]]</h4>
@@ -75,6 +77,7 @@ whatsontap.controller('tapsController', function ($scope) {
 			"Name" : "{{ $beer.Name }}",
 			"Style" : "{{ $beer.Style }}",
 			"Description" : "{{ $beer.Description }}",
+			"Image" : "{{ $beer.Image }}",
 		},
 	{{ end }}
 	];
@@ -106,7 +109,10 @@ whatsontap.controller('tapsController', function ($scope) {
 		backupTap = angular.copy($scope.Taps[tapIndex]);
 	};
 
-	$scope.saveTap = function(tapIndex) {
+	$scope.saveTap = function(tapIndex, keepImage) {
+		if(keepImage !== true) {
+			$scope.Taps[tapIndex].Image = "";
+		}
 		$.post("/update/tap",
 			JSON.stringify({
 				"Tap" : $scope.Taps[tapIndex],
@@ -170,7 +176,7 @@ whatsontap.controller('tapsController', function ($scope) {
 	$scope.useSuggestion = function(suggestionIndex) {
 		$scope.Taps[updatingTap] = $scope.Suggestions[suggestionIndex];
 		$('#myModal').modal('hide');
-		$scope.saveTap(updatingTap);
+		$scope.saveTap(updatingTap, true);
 	};
 });
 </script>
