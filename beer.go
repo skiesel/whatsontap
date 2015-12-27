@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"appengine/urlfetch"
 )
 
@@ -93,12 +94,16 @@ func queryUntappd(query string, c appengine.Context) []Beer {
 	beers := []Beer{}
 
 	for _, item := range untappdResponse.Response.Beers.Items {
+		image := ""
+		if !strings.Contains(item.Beer.Beer_label, "badge-beer-default.png") {
+			image = item.Beer.Beer_label
+		}
 		beers = append(beers, Beer {
 					Name : item.Beer.Beer_name,
 					Brewer : item.Brewery.Brewery_name,
 					Description : item.Beer.Beer_description,
 					Style : item.Beer.Beer_style,
-					Image : item.Beer.Beer_label, 
+					Image : image,
 			})
 	}
 
